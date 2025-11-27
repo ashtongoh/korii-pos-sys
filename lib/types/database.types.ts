@@ -204,6 +204,9 @@ export interface Database {
           expires_at: string
           confirmed_at: string | null
           created_at: string
+          hitpay_payment_id: string | null
+          hitpay_url: string | null
+          qr_code_url: string | null
         }
         Insert: {
           id?: string
@@ -215,6 +218,9 @@ export interface Database {
           expires_at: string
           confirmed_at?: string | null
           created_at?: string
+          hitpay_payment_id?: string | null
+          hitpay_url?: string | null
+          qr_code_url?: string | null
         }
         Update: {
           id?: string
@@ -225,6 +231,9 @@ export interface Database {
           amount?: number
           expires_at?: string
           confirmed_at?: string | null
+          hitpay_payment_id?: string | null
+          hitpay_url?: string | null
+          qr_code_url?: string | null
         }
       }
       admin_users: {

@@ -85,7 +85,11 @@ CREATE TABLE payment_sessions (
   amount DECIMAL(10, 2) NOT NULL CHECK (amount >= 0),
   expires_at TIMESTAMPTZ NOT NULL,
   confirmed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- HitPay integration fields
+  hitpay_payment_id TEXT,
+  hitpay_url TEXT,
+  qr_code_url TEXT
 );
 
 -- Admin users table (Supabase Auth integration)
@@ -107,6 +111,7 @@ CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX idx_payment_sessions_session_id ON payment_sessions(session_id);
 CREATE INDEX idx_payment_sessions_status ON payment_sessions(status);
 CREATE INDEX idx_payment_sessions_expires_at ON payment_sessions(expires_at);
+CREATE INDEX idx_payment_sessions_hitpay_id ON payment_sessions(hitpay_payment_id);
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -169,9 +174,7 @@ CREATE POLICY "Public can update payment sessions" ON payment_sessions FOR UPDAT
 -- Admin/Barista policies
 CREATE POLICY "Authenticated can view admin users" ON admin_users
   FOR SELECT
-  USING (auth.uid() = id OR EXISTS (
-    SELECT 1 FROM admin_users WHERE id = auth.uid() AND role = 'admin'
-  ));
+  USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Admins can manage categories" ON categories
   FOR ALL

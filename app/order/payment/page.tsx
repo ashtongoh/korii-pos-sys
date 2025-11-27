@@ -6,7 +6,7 @@ import { useCart } from '@/contexts/cart-context'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils/format'
-import { CheckCircle2, Loader2, QrCode as QrCodeIcon } from 'lucide-react'
+import { CheckCircle2, Loader2, QrCode as QrCodeIcon, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 import { toast } from 'sonner'
@@ -23,7 +23,8 @@ function PaymentContent() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [sessionId, setSessionId] = useState('')
   const [orderId, setOrderId] = useState('')
-  const [qrData, setQrData] = useState('')
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
+  const [hitpayError, setHitpayError] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(10)
 
   useEffect(() => {
@@ -95,31 +96,65 @@ function PaymentContent() {
           })
         }, 1000)
       } else {
-        // PayNow payment - generate QR and wait
-        // TODO: Generate actual PayNow QR code
-        // For now, we'll create a mock QR data
-        const mockQrData = `paynow://pay?uen=${process.env.NEXT_PUBLIC_PAYNOW_UEN}&amount=${total}&ref=${newSessionId}`
-        setQrData(mockQrData)
-
-        // Create payment session
+        // PayNow payment - create payment session first, then call HitPay
         const expiresAt = new Date()
         expiresAt.setMinutes(expiresAt.getMinutes() + 15)
 
+        // Create payment session in database (with placeholder qr_data)
         const { error: sessionError } = await supabase
           .from('payment_sessions')
           .insert({
             session_id: newSessionId,
             order_id: order.id,
-            qr_data: mockQrData,
+            qr_data: 'pending_hitpay', // Placeholder until HitPay responds
             amount: total,
             expires_at: expiresAt.toISOString(),
           })
 
         if (sessionError) throw sessionError
 
+        // Call HitPay API to create payment request and get QR code
+        try {
+          const hitpayResponse = await fetch('/api/payments/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              amount: total,
+              session_id: newSessionId,
+              order_id: order.id,
+              customer_name: initials,
+            }),
+          })
+
+          const hitpayData = await hitpayResponse.json()
+
+          if (!hitpayResponse.ok || !hitpayData.success) {
+            console.error('HitPay API error:', hitpayData)
+            setHitpayError(hitpayData.error || 'Failed to generate QR code')
+            setIsProcessing(false)
+            return
+          }
+
+          // Set the QR code URL from HitPay
+          if (hitpayData.qr_code_url) {
+            setQrCodeUrl(hitpayData.qr_code_url)
+          } else {
+            // If no QR code URL, we can fallback to showing the HitPay hosted page link
+            console.warn('No QR code URL returned, using HitPay URL:', hitpayData.hitpay_url)
+            setHitpayError('QR code not available. Please use the payment link.')
+          }
+        } catch (hitpayErr) {
+          console.error('Failed to call HitPay API:', hitpayErr)
+          setHitpayError('Failed to connect to payment service')
+          setIsProcessing(false)
+          return
+        }
+
         setIsProcessing(false)
 
-        // Subscribe to payment session updates
+        // Subscribe to payment session updates via Supabase Realtime
         const channel = supabase
           .channel(`payment-${newSessionId}`)
           .on(
@@ -150,20 +185,6 @@ function PaymentContent() {
             }
           )
           .subscribe()
-
-        // Temporary: Auto-confirm after 10 seconds for testing
-        // Remove this in production when email monitoring is working
-        setTimeout(async () => {
-          await supabase
-            .from('payment_sessions')
-            .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
-            .eq('session_id', newSessionId)
-
-          await supabase
-            .from('orders')
-            .update({ status: 'paid' })
-            .eq('id', order.id)
-        }, 10000)
 
         return () => {
           channel.unsubscribe()
@@ -230,28 +251,54 @@ function PaymentContent() {
               </p>
             </div>
 
-            {/* QR Code Placeholder */}
-            <div className="bg-white p-8 rounded-lg border-4 border-primary">
-              <div className="aspect-square bg-gray-100 rounded flex items-center justify-center">
-                <div className="text-center">
-                  <QrCodeIcon className="h-48 w-48 text-gray-400 mx-auto mb-4" />
-                  <p className="text-sm text-gray-500">PayNow QR Code</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Session: {sessionId.substring(0, 8)}
-                  </p>
-                </div>
+            {/* QR Code Display */}
+            <div className="bg-white p-4 rounded-lg border-4 border-primary">
+              <div className="aspect-square bg-gray-50 rounded flex items-center justify-center overflow-hidden">
+                {hitpayError ? (
+                  <div className="text-center p-4">
+                    <AlertCircle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+                    <p className="text-sm text-gray-600 mb-2">{hitpayError}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setHitpayError(null)
+                        setIsProcessing(true)
+                        processOrder()
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : qrCodeUrl ? (
+                  <img
+                    src={qrCodeUrl}
+                    alt="PayNow QR Code"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-gray-400 mx-auto mb-4" />
+                    <p className="text-sm text-gray-500">Generating QR Code...</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="space-y-2 text-center text-sm text-muted-foreground">
-              <p>1. Open your banking app</p>
-              <p>2. Scan the QR code above</p>
-              <p>3. Complete the payment</p>
-              <p className="pt-4">
-                <Loader2 className="h-5 w-5 animate-spin inline mr-2" />
-                Waiting for payment confirmation...
-              </p>
-            </div>
+            {!hitpayError && (
+              <div className="space-y-2 text-center text-sm text-muted-foreground">
+                <p>1. Open your banking app</p>
+                <p>2. Scan the QR code above</p>
+                <p>3. Complete the payment</p>
+                <p className="pt-4">
+                  <Loader2 className="h-5 w-5 animate-spin inline mr-2" />
+                  Waiting for payment confirmation...
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Session: {sessionId.substring(0, 8)}
+                </p>
+              </div>
+            )}
 
             <Button
               variant="outline"

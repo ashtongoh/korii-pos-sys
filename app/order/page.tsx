@@ -16,7 +16,7 @@ async function getMenuData() {
 
   if (categoriesError) {
     console.error('Error fetching categories:', categoriesError)
-    return { categories: [], items: [], customizationGroups: [] }
+    return { categories: [], items: [], customizationGroups: [], itemCustomizations: [] }
   }
 
   // Fetch items with category info
@@ -27,7 +27,7 @@ async function getMenuData() {
 
   if (itemsError) {
     console.error('Error fetching items:', itemsError)
-    return { categories: categories || [], items: [], customizationGroups: [] }
+    return { categories: categories || [], items: [], customizationGroups: [], itemCustomizations: [] }
   }
 
   // Fetch customization groups with options
@@ -40,7 +40,7 @@ async function getMenuData() {
 
   if (customGroupsError) {
     console.error('Error fetching customization groups:', customGroupsError)
-    return { categories: categories || [], items: items || [], customizationGroups: [] }
+    return { categories: categories || [], items: items || [], customizationGroups: [], itemCustomizations: [] }
   }
 
   // Fetch item-customization relationships
@@ -58,7 +58,7 @@ async function getMenuData() {
     customizationGroups: customizationGroups as (CustomizationGroup & {
       options: CustomizationOption[]
     })[],
-    itemCustomizations: itemCustomizations || [],
+    itemCustomizations: (itemCustomizations || []) as { item_id: string; group_id: string }[],
   }
 }
 

@@ -1,4 +1,5 @@
 import * as crypto from 'crypto'
+import QRCode from 'qrcode'
 import {
   HitPayPaymentRequest,
   HitPayPaymentResponse,
@@ -27,7 +28,6 @@ export async function createPaymentRequest(
     reference_number: sessionId, // Use session_id as reference for tracking
     name: customerName || undefined,
     webhook: webhookUrl || undefined,
-    expires_after: '15 minutes',
     send_email: 'false',
     send_sms: 'false',
   }
@@ -54,13 +54,29 @@ export async function createPaymentRequest(
 
     const data: HitPayPaymentResponse = await response.json()
 
-    // Extract QR code URL from response
-    // HitPay can return it in different places depending on the response
-    const qrCodeUrl =
+    // Try to get QR code from HitPay response first
+    let qrCodeUrl =
       data.qr_code_data?.qr_code ||
       data.qr_code_data?.qr_code_url ||
       data.qr_code ||
       undefined
+
+    // If HitPay didn't provide a QR code image, generate one from the payment URL
+    if (!qrCodeUrl && data.url) {
+      try {
+        // Generate QR code as data URL
+        qrCodeUrl = await QRCode.toDataURL(data.url, {
+          width: 300,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        })
+      } catch (qrError) {
+        console.error('Failed to generate QR code:', qrError)
+      }
+    }
 
     // Calculate expiry time (15 minutes from now)
     const expiresAt = new Date()
@@ -85,6 +101,7 @@ export async function createPaymentRequest(
 /**
  * Verify the HMAC signature from HitPay webhook
  * HitPay uses HMAC-SHA256 with the payload values (excluding hmac) sorted by key
+ * Only non-empty values are included in the signature
  */
 export function verifyWebhookSignature(
   payload: Record<string, string>,
@@ -95,20 +112,33 @@ export function verifyWebhookSignature(
     return false
   }
 
-  // Remove hmac from payload and sort keys alphabetically
+  // Remove hmac from payload and filter out empty/null/undefined values
   const { hmac: _, ...payloadWithoutHmac } = payload
-  const sortedKeys = Object.keys(payloadWithoutHmac).sort()
+
+  // Filter to only include non-empty string values and sort keys alphabetically
+  const filteredPayload = Object.fromEntries(
+    Object.entries(payloadWithoutHmac)
+      .filter(([, value]) => value !== null && value !== undefined && value !== '' && value !== 'undefined')
+  )
+  const sortedKeys = Object.keys(filteredPayload).sort()
 
   // Build the string to sign: key1value1key2value2...
   const stringToSign = sortedKeys
-    .map((key) => `${key}${payloadWithoutHmac[key]}`)
+    .map((key) => `${key}${filteredPayload[key]}`)
     .join('')
+
+  // Log for debugging
+  console.log('HMAC verification - String to sign:', stringToSign)
+  console.log('HMAC verification - Using salt:', HITPAY_SALT.substring(0, 8) + '...')
 
   // Generate HMAC
   const computedHmac = crypto
     .createHmac('sha256', HITPAY_SALT)
     .update(stringToSign)
     .digest('hex')
+
+  console.log('HMAC verification - Computed:', computedHmac)
+  console.log('HMAC verification - Received:', receivedHmac)
 
   return computedHmac === receivedHmac
 }

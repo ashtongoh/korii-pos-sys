@@ -154,6 +154,24 @@ function PaymentContent() {
 
         setIsProcessing(false)
 
+        // Function to handle successful payment
+        const handlePaymentSuccess = () => {
+          setIsSuccess(true)
+          cart.clear()
+
+          // Auto redirect after countdown
+          const countdownInterval = setInterval(() => {
+            setCountdown((prev) => {
+              if (prev <= 1) {
+                clearInterval(countdownInterval)
+                router.push('/order')
+                return 0
+              }
+              return prev - 1
+            })
+          }, 1000)
+        }
+
         // Subscribe to payment session updates via Supabase Realtime
         const channel = supabase
           .channel(`payment-${newSessionId}`)
@@ -166,28 +184,40 @@ function PaymentContent() {
               filter: `session_id=eq.${newSessionId}`,
             },
             (payload) => {
+              console.log('Realtime update received:', payload)
               if (payload.new.status === 'confirmed') {
-                setIsSuccess(true)
-                cart.clear()
-
-                // Auto redirect after countdown
-                const interval = setInterval(() => {
-                  setCountdown((prev) => {
-                    if (prev <= 1) {
-                      clearInterval(interval)
-                      router.push('/order')
-                      return 0
-                    }
-                    return prev - 1
-                  })
-                }, 1000)
+                handlePaymentSuccess()
               }
             }
           )
-          .subscribe()
+          .subscribe((status) => {
+            console.log('Realtime subscription status:', status)
+          })
+
+        // Polling fallback - check payment status every 3 seconds
+        // This handles cases where Realtime isn't enabled or misses the update
+        const pollInterval = setInterval(async () => {
+          try {
+            const { data: session } = await supabase
+              .from('payment_sessions')
+              .select('status')
+              .eq('session_id', newSessionId)
+              .single()
+
+            if (session?.status === 'confirmed') {
+              console.log('Payment confirmed via polling')
+              clearInterval(pollInterval)
+              channel.unsubscribe()
+              handlePaymentSuccess()
+            }
+          } catch (err) {
+            console.error('Polling error:', err)
+          }
+        }, 3000)
 
         return () => {
           channel.unsubscribe()
+          clearInterval(pollInterval)
         }
       }
     } catch (error) {

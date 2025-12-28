@@ -76,6 +76,38 @@ Dual-ID approach for reliability:
 - `reference_number` = our `session_id` (sent to HitPay, returned in webhook)
 - `hitpay_payment_id` = HitPay's ID (stored for audit/debugging)
 
+### PayNow Payment Flow
+
+```
+Customer selects PayNow → Order created (status: pending)
+    ↓
+/api/payments/create calls HitPay API
+    ↓
+HitPay returns payment_request_id + raw PayNow QR string
+    ↓
+QR code generated from raw string using `qrcode` library
+    ↓
+Frontend displays QR + subscribes to Supabase Realtime
+    ↓
+Customer scans QR with banking app and pays
+    ↓
+HitPay sends webhook POST to /api/webhooks/hitpay
+    ↓
+Webhook verifies HMAC, updates DB (status: confirmed/paid)
+    ↓
+Supabase Realtime notifies frontend → Success screen
+```
+
+**Two communication channels:**
+- **Webhook (HitPay → Server)**: HitPay notifies your server when payment completes. Uses ngrok in dev for public URL.
+- **Supabase Realtime (Server → Frontend)**: Database changes broadcast to browser via WebSocket. Frontend updates instantly.
+
+**QR Code handling**: HitPay production returns raw PayNow EMV strings (e.g., `00020101...`), not image URLs. The `lib/hitpay/client.ts` detects this and generates a base64 PNG using the `qrcode` library.
+
+**Frontend detection**: Dual mechanism for reliability:
+1. Supabase Realtime subscription (instant)
+2. Polling fallback every 3 seconds (if Realtime fails)
+
 ## Environment Variables
 
 Required in `.env.local`:

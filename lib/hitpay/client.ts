@@ -54,27 +54,39 @@ export async function createPaymentRequest(
 
     const data: HitPayPaymentResponse = await response.json()
 
-    // Try to get QR code from HitPay response first
-    let qrCodeUrl =
+    // Try to get QR code from HitPay response
+    const rawQrValue =
       data.qr_code_data?.qr_code ||
       data.qr_code_data?.qr_code_url ||
       data.qr_code ||
       undefined
 
-    // If HitPay didn't provide a QR code image, generate one from the payment URL
-    if (!qrCodeUrl && data.url) {
-      try {
-        // Generate QR code as data URL
-        qrCodeUrl = await QRCode.toDataURL(data.url, {
-          width: 300,
-          margin: 2,
-          color: {
-            dark: '#000000',
-            light: '#ffffff',
-          },
-        })
-      } catch (qrError) {
-        console.error('Failed to generate QR code:', qrError)
+    let qrCodeUrl: string | undefined
+
+    // Check if the value is already a valid image URL or data URL
+    if (rawQrValue && (
+      rawQrValue.startsWith('http://') ||
+      rawQrValue.startsWith('https://') ||
+      rawQrValue.startsWith('data:')
+    )) {
+      qrCodeUrl = rawQrValue
+    } else {
+      // HitPay returned a raw PayNow EMV string (e.g., "00020101...") or nothing
+      // We need to generate a QR code image from this string or the payment URL
+      const qrContent = rawQrValue || data.url
+      if (qrContent) {
+        try {
+          qrCodeUrl = await QRCode.toDataURL(qrContent, {
+            width: 300,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#ffffff',
+            },
+          })
+        } catch (qrError) {
+          console.error('Failed to generate QR code:', qrError)
+        }
       }
     }
 

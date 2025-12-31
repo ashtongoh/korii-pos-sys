@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { Item, CustomizationGroup, CustomizationOption } from '@/lib/types'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils/format'
 import { Plus } from 'lucide-react'
 import ItemCustomizationModal from './item-customization-modal'
+import { cn } from '@/lib/utils'
 
 interface MenuItemCardProps {
   item: Item
@@ -15,49 +14,86 @@ interface MenuItemCardProps {
 
 export default function MenuItemCard({ item, customizations }: MenuItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isPressed, setIsPressed] = useState(false)
 
   const handleClick = () => {
     setIsModalOpen(true)
   }
 
+  const isUnavailable = !item.available
+
   return (
     <>
-      <Card
-        className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+      <article
+        className={cn(
+          "group relative bg-card rounded-xl overflow-hidden cursor-pointer",
+          "shadow-zen hover:shadow-elevated",
+          "transition-all duration-300 ease-out",
+          "hover:-translate-y-1",
+          isPressed && "scale-[0.98]",
+          isUnavailable && "opacity-60 pointer-events-none"
+        )}
         onClick={handleClick}
+        onMouseDown={() => setIsPressed(true)}
+        onMouseUp={() => setIsPressed(false)}
+        onMouseLeave={() => setIsPressed(false)}
       >
         {/* Item Image */}
-        {item.image_url ? (
-          <div className="aspect-square relative bg-muted">
+        <div className="aspect-[4/3] relative bg-muted overflow-hidden">
+          {item.image_url ? (
             <img
               src={item.image_url}
               alt={item.name}
-              className="object-cover w-full h-full"
+              className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
             />
-          </div>
-        ) : (
-          <div className="aspect-square bg-muted flex items-center justify-center">
-            <span className="text-4xl">🍵</span>
-          </div>
-        )}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
+              <span className="text-5xl opacity-50">茶</span>
+            </div>
+          )}
 
-        <CardContent className="p-4">
-          <h3 className="font-semibold text-lg line-clamp-2 mb-1 font-[family-name:var(--font-display)]">{item.name}</h3>
+          {/* Hover overlay with add button */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-3 right-3">
+              <div className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                <Plus className="w-5 h-5 text-primary" />
+              </div>
+            </div>
+          </div>
+
+          {/* Unavailable badge */}
+          {isUnavailable && (
+            <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+              <span className="text-sm font-medium text-muted-foreground">
+                Sold Out
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <h3 className="font-display text-lg leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors duration-300">
+            {item.name}
+          </h3>
+
           {item.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
               {item.description}
             </p>
           )}
-          <p className="text-lg font-bold text-primary">{formatCurrency(Number(item.base_price))}</p>
-        </CardContent>
 
-        <CardFooter className="p-4 pt-0">
-          <Button className="w-full" size="lg">
-            <Plus className="mr-2 h-4 w-4" />
-            Add to Cart
-          </Button>
-        </CardFooter>
-      </Card>
+          {/* Price with subtle separator */}
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <p className="font-display text-xl text-primary font-medium">
+              {formatCurrency(Number(item.base_price))}
+            </p>
+          </div>
+        </div>
+
+        {/* Subtle accent line */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+      </article>
 
       <ItemCustomizationModal
         item={item}

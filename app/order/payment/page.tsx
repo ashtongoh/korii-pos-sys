@@ -3,13 +3,13 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCart } from '@/contexts/cart-context'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils/format'
-import { CheckCircle2, Loader2, QrCode as QrCodeIcon, AlertCircle } from 'lucide-react'
+import { CheckCircle2, Loader2, AlertCircle, ArrowLeft, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 function PaymentContent() {
   const router = useRouter()
@@ -106,7 +106,7 @@ function PaymentContent() {
           .insert({
             session_id: newSessionId,
             order_id: order.id,
-            qr_data: 'pending_hitpay', // Placeholder until HitPay responds
+            qr_data: 'pending_hitpay',
             amount: total,
             expires_at: expiresAt.toISOString(),
           })
@@ -137,11 +137,9 @@ function PaymentContent() {
             return
           }
 
-          // Set the QR code URL from HitPay
           if (hitpayData.qr_code_url) {
             setQrCodeUrl(hitpayData.qr_code_url)
           } else {
-            // If no QR code URL, we can fallback to showing the HitPay hosted page link
             console.warn('No QR code URL returned, using HitPay URL:', hitpayData.hitpay_url)
             setHitpayError('QR code not available. Please use the payment link.')
           }
@@ -195,7 +193,6 @@ function PaymentContent() {
           })
 
         // Polling fallback - check payment status every 3 seconds
-        // This handles cases where Realtime isn't enabled or misses the update
         const pollInterval = setInterval(async () => {
           try {
             const { data: session } = await supabase
@@ -228,66 +225,103 @@ function PaymentContent() {
     }
   }
 
+  // Success Screen
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-8 pb-6 text-center space-y-6">
-            <CheckCircle2 className="h-24 w-24 text-primary mx-auto" />
-            <div>
-              <h2 className="text-2xl font-bold mb-2 font-[family-name:var(--font-display)]">Payment Successful!</h2>
-              <p className="text-muted-foreground mb-4">
-                Thank you, <span className="font-semibold">{initials}</span>!
-              </p>
-              <p className="text-lg">
-                Your order will be ready soon. We'll call your initials when it's done.
-              </p>
-            </div>
-            <div className="pt-4">
-              <p className="text-sm text-muted-foreground mb-4">
-                Redirecting in {countdown} seconds...
-              </p>
-              <Button onClick={() => router.push('/order')} className="w-full" size="lg">
-                Place Another Order
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+      <div className="min-h-screen flex items-center justify-center p-6 bg-background texture-paper">
+        <div className="max-w-md w-full text-center animate-scale-in">
+          {/* Success Icon */}
+          <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-8">
+            <CheckCircle2 className="h-12 w-12 text-primary" />
+          </div>
 
-  if (isProcessing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
-          <p className="text-lg">Processing your order...</p>
+          <h1 className="text-3xl font-display mb-3">Thank You!</h1>
+          <p className="text-muted-foreground mb-2">
+            Your order has been placed successfully.
+          </p>
+          <p className="text-lg font-display text-primary mb-8">
+            We'll call "{initials}" when ready
+          </p>
+
+          {/* Decorative Line */}
+          <div className="w-16 h-px bg-accent mx-auto mb-8" />
+
+          <div className="bg-card rounded-xl shadow-zen p-6 mb-6">
+            <p className="text-sm text-muted-foreground mb-4">
+              Redirecting in {countdown} seconds...
+            </p>
+            <Button
+              onClick={() => router.push('/order')}
+              className="w-full h-12"
+              size="lg"
+            >
+              Place Another Order
+            </Button>
+          </div>
         </div>
       </div>
     )
   }
 
-  // PayNow payment screen
+  // Processing Screen
+  if (isProcessing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+        <div className="text-center animate-fade-in">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+          <p className="text-lg font-display">Preparing your order...</p>
+          <p className="text-sm text-muted-foreground mt-2">Please wait</p>
+        </div>
+      </div>
+    )
+  }
+
+  // PayNow QR Screen
   if (method === 'paynow') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-8 pb-6 space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2 font-[family-name:var(--font-display)]">Scan to Pay</h2>
-              <p className="text-muted-foreground mb-6">
-                Total: <span className="font-bold text-lg text-primary">{formatCurrency(cart.getTotal())}</span>
-              </p>
+      <div className="min-h-screen bg-background texture-paper">
+        {/* Header */}
+        <header className="border-b bg-card/50 backdrop-blur-sm">
+          <div className="max-w-md mx-auto px-6 py-4 flex items-center gap-4">
+            <button
+              onClick={() => router.push('/order/checkout')}
+              className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-display">Scan to Pay</h1>
+              <p className="text-sm text-muted-foreground">PayNow Payment</p>
             </div>
+          </div>
+        </header>
 
-            {/* QR Code Display */}
-            <div className="bg-white p-4 rounded-lg border-4 border-primary">
-              <div className="aspect-square bg-gray-50 rounded flex items-center justify-center overflow-hidden">
+        <main className="max-w-md mx-auto px-6 py-8">
+          {/* Amount Display */}
+          <div className="text-center mb-8 animate-fade-in">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              Total Amount
+            </p>
+            <p className="text-4xl font-display text-primary font-medium">
+              {formatCurrency(cart.getTotal())}
+            </p>
+          </div>
+
+          {/* QR Code Container */}
+          <div className="animate-fade-up delay-100">
+            <div className={cn(
+              "bg-white rounded-2xl shadow-elevated p-6",
+              "border-4 border-primary/20"
+            )}>
+              <div className="aspect-square rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
                 {hitpayError ? (
-                  <div className="text-center p-4">
-                    <AlertCircle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
-                    <p className="text-sm text-gray-600 mb-2">{hitpayError}</p>
+                  <div className="text-center p-6">
+                    <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                      <AlertCircle className="h-8 w-8 text-amber-600" />
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">{hitpayError}</p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -296,7 +330,9 @@ function PaymentContent() {
                         setIsProcessing(true)
                         processOrder()
                       }}
+                      className="gap-2"
                     >
+                      <RefreshCw className="h-4 w-4" />
                       Retry
                     </Button>
                   </div>
@@ -308,37 +344,61 @@ function PaymentContent() {
                   />
                 ) : (
                   <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-gray-400 mx-auto mb-4" />
-                    <p className="text-sm text-gray-500">Generating QR Code...</p>
+                    <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">Generating QR Code...</p>
                   </div>
                 )}
               </div>
             </div>
+          </div>
 
-            {!hitpayError && (
-              <div className="space-y-2 text-center text-sm text-muted-foreground">
-                <p>1. Open your banking app</p>
-                <p>2. Scan the QR code above</p>
-                <p>3. Complete the payment</p>
-                <p className="pt-4">
-                  <Loader2 className="h-5 w-5 animate-spin inline mr-2" />
-                  Waiting for payment confirmation...
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Session: {sessionId.substring(0, 8)}
-                </p>
+          {/* Instructions */}
+          {!hitpayError && (
+            <div className="mt-8 animate-fade-up delay-200">
+              <div className="bg-card rounded-xl shadow-zen p-5">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
+                  How to Pay
+                </h3>
+                <ol className="space-y-3 text-sm">
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 font-medium">1</span>
+                    <span>Open your banking app</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 font-medium">2</span>
+                    <span>Scan the QR code above</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 font-medium">3</span>
+                    <span>Complete the payment</span>
+                  </li>
+                </ol>
+
+                {/* Waiting indicator */}
+                <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Waiting for payment...</span>
+                </div>
               </div>
-            )}
 
+              {/* Session ID for debugging */}
+              <p className="text-xs text-center text-muted-foreground/50 mt-4">
+                Session: {sessionId.substring(0, 8)}
+              </p>
+            </div>
+          )}
+
+          {/* Cancel Button */}
+          <div className="mt-8">
             <Button
-              variant="outline"
-              className="w-full"
+              variant="ghost"
+              className="w-full text-muted-foreground"
               onClick={() => router.push('/order/checkout')}
             >
-              Cancel & Go Back
+              Cancel Payment
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </main>
       </div>
     )
   }
@@ -348,7 +408,15 @@ function PaymentContent() {
 
 export default function PaymentPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        </div>
+      }
+    >
       <PaymentContent />
     </Suspense>
   )

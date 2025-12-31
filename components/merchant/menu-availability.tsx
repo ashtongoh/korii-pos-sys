@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { Item, Category } from '@/lib/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { updateItemAvailability } from '@/lib/actions/menu'
 import { toast } from 'sonner'
-import { Search } from 'lucide-react'
+import { Search, Coffee } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 interface MenuAvailabilityProps {
   items: (Item & { category: Pick<Category, 'id' | 'name'> })[]
@@ -61,66 +61,78 @@ export function MenuAvailability({ items }: MenuAvailabilityProps) {
   const unavailableCount = localItems.filter((item) => !item.available).length
 
   return (
-    <aside className="w-80 border-l bg-card">
-      <Card className="border-0 rounded-none h-full">
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg">Menu Availability</CardTitle>
+    <aside className="w-80 border-l bg-card hidden xl:block">
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="p-5 border-b">
+          <div className="flex items-center gap-3 mb-1">
+            <Coffee className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg">Menu Availability</h2>
+          </div>
           <p className="text-sm text-muted-foreground">
             {unavailableCount > 0
               ? `${unavailableCount} item${unavailableCount > 1 ? 's' : ''} unavailable`
               : 'All items available'}
           </p>
-          <div className="relative mt-2">
+
+          {/* Search */}
+          <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 h-10"
             />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <ScrollArea className="h-[calc(100vh-200px)]">
-            <div className="p-4 space-y-6">
-              {Object.entries(groupedItems).map(([categoryName, categoryItems]) => (
-                <div key={categoryName}>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                    {categoryName}
-                  </h3>
-                  <div className="space-y-2">
-                    {categoryItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                          !item.available ? 'bg-destructive/10' : 'hover:bg-muted'
-                        }`}
+        </div>
+
+        {/* Items List */}
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-6">
+            {Object.entries(groupedItems).map(([categoryName, categoryItems]) => (
+              <div key={categoryName}>
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                  {categoryName}
+                </h3>
+                <div className="space-y-1">
+                  {categoryItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-lg transition-all duration-200",
+                        item.available
+                          ? "hover:bg-muted"
+                          : "bg-destructive/5 border border-destructive/10"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "text-sm",
+                          !item.available && "text-muted-foreground line-through"
+                        )}
                       >
-                        <span
-                          className={`text-sm ${
-                            !item.available ? 'text-muted-foreground line-through' : ''
-                          }`}
-                        >
-                          {item.name}
-                        </span>
-                        <Switch
-                          checked={item.available}
-                          onCheckedChange={() => handleToggle(item.id, item.available)}
-                        />
-                      </div>
-                    ))}
-                  </div>
+                        {item.name}
+                      </span>
+                      <Switch
+                        checked={item.available}
+                        onCheckedChange={() => handleToggle(item.id, item.available)}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {filteredItems.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground py-8">
+              </div>
+            ))}
+            {filteredItems.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">
                   No items found
                 </p>
-              )}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
     </aside>
   )
 }

@@ -22,10 +22,12 @@ export default async function MenuPage() {
   const items = (itemsResult.data as (Item & { category: Category })[]) || []
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold font-[family-name:var(--font-display)]">Menu Management</h1>
-        <p className="text-muted-foreground">Add, edit, and manage your menu items</p>
+        <h1 className="text-3xl font-display mb-1">Menu Management</h1>
+        <p className="text-muted-foreground">
+          Add, edit, and manage your menu items
+        </p>
       </div>
 
       <MenuManager categories={categories} items={items} />

@@ -2,12 +2,10 @@
 
 import { useState } from 'react'
 import { Category, Item } from '@/lib/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
   DialogContent,
@@ -33,7 +31,8 @@ import {
   deleteCategory,
 } from '@/lib/actions/menu'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, FolderOpen } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface MenuManagerProps {
   categories: Category[]
@@ -187,25 +186,30 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
       {/* Categories Sidebar */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Categories</CardTitle>
-            <Button size="sm" variant="ghost" onClick={() => setIsCategoryDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-1">
+      <div className="bg-card rounded-xl shadow-zen overflow-hidden">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="font-display text-lg">Categories</h2>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+            onClick={() => setIsCategoryDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="p-2 space-y-1">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+            className={cn(
+              "w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
               selectedCategory === null
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
-            }`}
+                ? "bg-primary text-primary-foreground shadow-zen"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
           >
-            All Items ({items.length})
+            All Items
+            <span className="ml-2 text-xs opacity-70">({items.length})</span>
           </button>
           {categories.map((category) => {
             const count = items.filter((i) => i.category_id === category.id).length
@@ -213,50 +217,54 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
               <div key={category.id} className="flex items-center gap-1">
                 <button
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex-1 text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={cn(
+                    "flex-1 text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
                     selectedCategory === category.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted'
-                  }`}
+                      ? "bg-primary text-primary-foreground shadow-zen"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
                 >
-                  {category.name} ({count})
+                  {category.name}
+                  <span className="ml-2 text-xs opacity-70">({count})</span>
                 </button>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 opacity-50 hover:opacity-100"
+                  className="h-8 w-8 opacity-50 hover:opacity-100 hover:text-destructive"
                   onClick={() => handleDeleteCategory(category.id)}
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
             )
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Items List */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              {selectedCategory
-                ? categories.find((c) => c.id === selectedCategory)?.name
-                : 'All Items'}
-            </CardTitle>
-            <Button onClick={() => handleOpenItemDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Item
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+      <div className="bg-card rounded-xl shadow-zen overflow-hidden">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="font-display text-lg">
+            {selectedCategory
+              ? categories.find((c) => c.id === selectedCategory)?.name
+              : 'All Items'}
+          </h2>
+          <Button onClick={() => handleOpenItemDialog()} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Item
+          </Button>
+        </div>
+
+        <div className="p-4">
           {filteredItems.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No items in this category</p>
+            <div className="text-center py-12">
+              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <FolderOpen className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground mb-3">No items in this category</p>
               <Button
-                variant="link"
-                className="mt-2"
+                variant="outline"
+                size="sm"
                 onClick={() => handleOpenItemDialog()}
               >
                 Add your first item
@@ -264,37 +272,48 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredItems.map((item) => (
+              {filteredItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className={cn(
+                    "flex items-center justify-between p-4 rounded-xl border border-border/50",
+                    "hover:border-border transition-colors duration-200 animate-fade-up"
+                  )}
+                  style={{ animationDelay: `${index * 30}ms` }}
                 >
                   <div className="flex items-center gap-4">
                     {item.image_url ? (
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-12 h-12 rounded object-cover"
+                        className="w-14 h-14 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
-                        <span className="text-xl">🍵</span>
+                      <div className="w-14 h-14 rounded-lg bg-primary/5 flex items-center justify-center">
+                        <span className="text-2xl">茶</span>
                       </div>
                     )}
                     <div>
-                      <h3 className="font-medium">{item.name}</h3>
+                      <h3 className="font-display font-medium">{item.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         {formatCurrency(Number(item.base_price))}
-                        {!selectedCategory && (
-                          <span className="ml-2">• {item.category?.name}</span>
+                        {!selectedCategory && item.category && (
+                          <span className="ml-2 text-xs">• {item.category.name}</span>
                         )}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor={`available-${item.id}`} className="text-sm">
-                        Available
+                      <Label
+                        htmlFor={`available-${item.id}`}
+                        className={cn(
+                          "text-xs",
+                          item.available ? "text-primary" : "text-muted-foreground"
+                        )}
+                      >
+                        {item.available ? 'Available' : 'Unavailable'}
                       </Label>
                       <Switch
                         id={`available-${item.id}`}
@@ -304,34 +323,40 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
                         }
                       />
                     </div>
-                    <Separator orientation="vertical" className="h-6" />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleOpenItemDialog(item)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDeleteItem(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+
+                    <div className="flex items-center gap-1 pl-4 border-l border-border/50">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => handleOpenItemDialog(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 hover:text-destructive"
+                        onClick={() => handleDeleteItem(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Item Dialog */}
       <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Item' : 'Add New Item'}</DialogTitle>
+            <DialogTitle className="font-display text-xl">
+              {editingItem ? 'Edit Item' : 'Add New Item'}
+            </DialogTitle>
             <DialogDescription>
               {editingItem ? 'Update the item details below' : 'Fill in the details for the new item'}
             </DialogDescription>
@@ -344,6 +369,7 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
                 value={itemForm.name}
                 onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
                 placeholder="e.g., Matcha Latte"
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
@@ -353,6 +379,7 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
                 value={itemForm.description}
                 onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })}
                 placeholder="Optional description"
+                className="h-11"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -366,6 +393,7 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
                   value={itemForm.base_price}
                   onChange={(e) => setItemForm({ ...itemForm, base_price: e.target.value })}
                   placeholder="0.00"
+                  className="h-11"
                 />
               </div>
               <div className="space-y-2">
@@ -374,7 +402,7 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
                   value={itemForm.category_id}
                   onValueChange={(value) => setItemForm({ ...itemForm, category_id: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -394,6 +422,7 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
                 value={itemForm.image_url}
                 onChange={(e) => setItemForm({ ...itemForm, image_url: e.target.value })}
                 placeholder="https://example.com/image.jpg"
+                className="h-11"
               />
             </div>
           </div>
@@ -411,9 +440,9 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
 
       {/* Category Dialog */}
       <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
+            <DialogTitle className="font-display text-xl">Add New Category</DialogTitle>
             <DialogDescription>
               Create a new category to organize your menu items
             </DialogDescription>
@@ -426,6 +455,7 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
                 value={categoryName}
                 onChange={(e) => setCategoryName(e.target.value)}
                 placeholder="e.g., Drinks, Food, Add-ons"
+                className="h-11"
               />
             </div>
           </div>

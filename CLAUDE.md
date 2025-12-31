@@ -137,101 +137,188 @@ ngrok http 3000
 - **Supabase**: All-in-one (DB, Auth, Realtime), RLS for security, no separate backend
 - **Customers identified by initials**: Simple identification for calling out orders (no accounts required)
 
-## Brand Styling Guidelines
+---
 
-> **IMPORTANT**: All UI changes MUST strictly adhere to these styling guidelines. Do not deviate from the established brand identity, colors, or typography.
+# STRICT DESIGN GUIDELINES
 
-### Brand Identity
+> **CRITICAL**: All UI changes MUST strictly adhere to these styling guidelines. Do not deviate from the established brand identity. These guidelines are NON-NEGOTIABLE.
+
+## Brand Identity
 
 **Name**: Kōri Matcha (氷 = ice in Japanese)
-**Philosophy**: Minimalist, Japanese-inspired, freshness, clarity, calm
+**Design Philosophy**: Japanese Tea House Minimalism
+- **Ma (間)**: Intentional negative space - let elements breathe
+- **Wabi-sabi**: Simple elegance, nothing excessive
+- **Serenity**: Calm, refined, premium matcha experience
 
-### Color Palette (STRICT)
+## Color Palette (STRICT - NO EXCEPTIONS)
 
-| Color | Hex | OKLCH | Usage |
-|-------|-----|-------|-------|
-| Primary Green | `#2C5234` | `oklch(0.35 0.08 145)` | Headers, primary buttons, links, completed status |
-| Accent Gold | `#C0B561` | `oklch(0.75 0.12 95)` | Secondary CTAs, highlights, preparing status |
-| Black | `#000000` | - | Text |
-| White | `#FFFFFF` | - | Backgrounds, button text on primary |
+| Color | Hex | OKLCH | CSS Variable | Usage |
+|-------|-----|-------|--------------|-------|
+| Primary Green | `#2C5234` | `oklch(0.35 0.08 145)` | `--primary` | Headers, primary buttons, completed status, links |
+| Accent Gold | `#C0B561` | `oklch(0.75 0.12 95)` | `--accent` | Secondary CTAs, preparing status, decorative lines |
+| Background | Warm white | `oklch(0.985 0.003 90)` | `--background` | Page backgrounds |
+| Card | Pure white | `oklch(1 0 0)` | `--card` | Card surfaces |
+| Muted | Sage gray | `oklch(0.95 0.008 145)` | `--muted` | Disabled states, backgrounds |
 
-**DO NOT** use other colors (e.g., blue, red for non-error states). All UI elements must use these brand colors.
+**NEVER USE**: Blue, purple, red (except for errors), or any non-brand colors.
 
-### Typography (STRICT)
+## Typography (STRICT - NO EXCEPTIONS)
 
-| Font | Variable | Usage |
-|------|----------|-------|
-| **Cormorant Garamond** | `--font-display` | ALL headings, brand name, item names, prices |
-| **Montserrat** | `--font-montserrat` | Body text, descriptions, UI labels |
+| Font | CSS Variable | Usage |
+|------|--------------|-------|
+| **Cormorant Garamond** | `font-display` | ALL headings, brand name, item names, prices, category titles |
+| **Montserrat** | `font-sans` (default) | Body text, descriptions, UI labels, buttons |
 
-**Usage**:
+**Usage Examples**:
 ```tsx
-// For headings and brand elements
-className="font-[family-name:var(--font-display)]"
+// Headings and brand elements - USE font-display CLASS
+<h1 className="font-display text-3xl">Kōri Matcha</h1>
+<p className="font-display text-xl text-primary">{price}</p>
 
-// Body text uses default (Montserrat via font-sans)
+// Body text uses default (no class needed)
+<p className="text-muted-foreground">Description text</p>
 ```
 
-**DO NOT** use other fonts or the default Inter font.
+**NEVER USE**: Inter, Arial, system fonts, or any other typefaces.
 
-### Component Variants (STRICT)
+## Custom Utility Classes (REQUIRED)
 
-**Button Variants**:
-- `default` - Primary green (main CTAs: "Checkout", "Complete Order", "Sign In")
-- `accent` - Gold (secondary actions: "Add to Cart", "Start Preparing", "Refresh")
-- `secondary` - Light sage background (tertiary actions)
-- `outline` - Bordered, transparent background
-- `ghost` - No background, hover state only
-- `destructive` - Red, for delete/cancel actions only
+These are defined in `globals.css` and MUST be used:
 
-**Badge Variants**:
-- `paid` - Light green background, for new orders
-- `preparing` - Gold background, for in-progress orders
-- `completed` - Primary green background, for done orders
-- `pending` - Muted gray, for awaiting states
+| Class | Purpose | When to Use |
+|-------|---------|-------------|
+| `shadow-zen` | Subtle grounded shadow | Default card shadow |
+| `shadow-elevated` | Elevated shadow | Hover states, modals |
+| `texture-paper` | Subtle paper texture | Full-page backgrounds |
+| `animate-fade-up` | Fade + slide up | Page/section entrances |
+| `animate-fade-in` | Simple fade | Subtle reveals |
+| `animate-scale-in` | Scale + fade | Success states, modals |
 
-### Header Pattern (REQUIRED)
-
-All page interfaces MUST use this branded header:
-
+**Animation Delays**:
 ```tsx
+// Staggered animations for lists
+{items.map((item, index) => (
+  <div
+    className="animate-fade-up"
+    style={{ animationDelay: `${index * 50}ms` }}
+  >
+    {item}
+  </div>
+))}
+```
+
+## Component Patterns (STRICT)
+
+### Cards
+```tsx
+// Standard card
+<div className="bg-card rounded-xl shadow-zen p-5">
+
+// Card with hover
+<div className="bg-card rounded-xl shadow-zen hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-300">
+
+// Highlighted card (new orders)
+<div className="bg-card rounded-xl shadow-elevated border-2 border-accent/50">
+```
+
+### Buttons
+| Variant | Usage | Example |
+|---------|-------|---------|
+| `default` | Primary CTAs | "Checkout", "Sign In", "Complete Order" |
+| `accent` | Secondary actions | "Start Preparing", "Add to Cart" |
+| `secondary` | Tertiary actions | "Cancel", less prominent actions |
+| `outline` | Bordered buttons | "Clear Cart", form cancels |
+| `ghost` | Minimal buttons | Icon buttons, subtle actions |
+
+### Headers
+```tsx
+// Page header (customer-facing)
 <header className="bg-primary text-primary-foreground">
-  <div className="container mx-auto px-4 py-4">
-    <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">Kōri Matcha</h1>
-    <p className="text-sm text-primary-foreground/80">Subtitle here</p>
+  <div className="container mx-auto px-6 py-5">
+    <h1 className="text-3xl font-display tracking-tight">Kōri Matcha</h1>
+    <p className="text-sm text-primary-foreground/70">氷抹茶 · Premium Japanese Tea</p>
+  </div>
+</header>
+
+// Admin/merchant header
+<header className="bg-primary text-primary-foreground sticky top-0 z-20">
+  <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+    <div>
+      <h1 className="text-2xl font-display">Kōri Matcha</h1>
+      <p className="text-sm text-primary-foreground/70">Order Queue</p>
+    </div>
+    {/* Actions */}
   </div>
 </header>
 ```
 
-### Status Colors (STRICT)
+### Status Badges
+| Status | Variant | Card Treatment |
+|--------|---------|----------------|
+| New/Paid | `variant="paid"` | `border-2 border-accent/50 shadow-elevated` |
+| Preparing | `variant="preparing"` | `shadow-zen` |
+| Completed | `variant="completed"` | `opacity-75 shadow-zen` |
 
-| Status | Badge Variant | Card Border | Button |
-|--------|--------------|-------------|--------|
-| New/Paid | `paid` | `border-accent` | `variant="accent"` |
-| Preparing | `preparing` | - | - |
-| Completed | `completed` | - | `variant="default"` |
-
-### Card Styling
-
-Cards use `rounded-2xl` with subtle borders (`border-border/50`). Do not use sharp corners or heavy shadows.
+### Empty States
+```tsx
+<div className="text-center py-16 animate-fade-in">
+  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+    <span className="text-2xl">茶</span>
+  </div>
+  <h3 className="text-lg font-display mb-2">No items here</h3>
+  <p className="text-sm text-muted-foreground">Description text</p>
+</div>
+```
 
 ### Price Display
+```tsx
+// Always use display font + primary color
+<span className="font-display text-xl text-primary font-medium">
+  {formatCurrency(price)}
+</span>
+```
 
-Prices should always use:
-- Primary green color: `text-primary`
-- Display font: `font-[family-name:var(--font-display)]`
-- Bold weight: `font-bold`
+### Decorative Elements
+```tsx
+// Gold separator line (use sparingly)
+<div className="w-12 h-px bg-accent" />
 
-### Dos and Don'ts
+// Section divider
+<div className="pt-4 border-t border-accent/30">
+```
 
-**DO**:
-- Use forest green (`bg-primary`) for all headers
-- Use gold (`variant="accent"`) for secondary actions
-- Use display font for all headings and item names
-- Keep UI minimal and clean
+## Japanese Branding Elements
 
-**DON'T**:
-- Use blue, purple, or other non-brand colors
-- Use default shadcn gray theme
-- Add unnecessary decorations or gradients
-- Use fonts other than Cormorant Garamond and Montserrat
+Use these consistently:
+- **氷** (kōri/ice) - Logo character, login page
+- **茶** (cha/tea) - Empty states, placeholders
+- **氷抹茶** - Tagline subtitle
+
+## DO's and DON'Ts
+
+### DO:
+- Use `font-display` for ALL headings, item names, and prices
+- Use `shadow-zen` for cards, `shadow-elevated` for hover states
+- Use staggered `animate-fade-up` for list items
+- Use `rounded-xl` for cards (not `rounded-lg` or `rounded-2xl`)
+- Keep generous padding (p-5, p-6, px-6 py-8)
+- Use opacity variants for subtle text (e.g., `text-primary-foreground/70`)
+
+### DON'T:
+- Use any font other than Cormorant Garamond or Montserrat
+- Use colors outside the brand palette
+- Use heavy drop shadows or box shadows
+- Add unnecessary decorations, gradients, or effects
+- Use emoji except for tea-related kanji (茶, 氷)
+- Use default shadcn gray/neutral theme colors
+- Overcrowd interfaces - embrace negative space
+
+## File Reference
+
+| File | Contains |
+|------|----------|
+| `app/globals.css` | Theme colors, custom utilities, animations |
+| `app/layout.tsx` | Font imports (Montserrat, Cormorant Garamond) |
+| `components/ui/button.tsx` | Button variants including `accent` |
+| `components/ui/badge.tsx` | Status badge variants (paid, preparing, completed) |

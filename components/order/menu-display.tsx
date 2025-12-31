@@ -2,14 +2,13 @@
 
 import { useState, useMemo } from 'react'
 import { Category, Item, CustomizationGroup, CustomizationOption } from '@/lib/types'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import MenuItemCard from './menu-item-card'
 import CartSheet from './cart-sheet'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useCart } from '@/contexts/cart-context'
 import { Sheet, SheetTrigger } from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
 
 interface MenuDisplayProps {
   categories: Category[]
@@ -50,12 +49,16 @@ export default function MenuDisplay({
   }
 
   const itemCount = cart.getItemCount()
+  const currentCategory = categories.find(c => c.id === selectedCategory)
 
   if (categories.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">No menu available</h2>
+      <div className="flex min-h-screen items-center justify-center bg-background texture-paper">
+        <div className="text-center animate-fade-up">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+            <span className="text-3xl">茶</span>
+          </div>
+          <h2 className="text-2xl font-display mb-3">No menu available</h2>
           <p className="text-muted-foreground">
             Please contact the administrator to set up the menu.
           </p>
@@ -65,23 +68,34 @@ export default function MenuDisplay({
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header */}
-      <header className="border-b bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">Kōri Matcha</h1>
-            <p className="text-sm text-primary-foreground/80">Select your items</p>
+    <div className="flex flex-col h-screen bg-background">
+      {/* Refined Header */}
+      <header className="relative bg-primary text-primary-foreground">
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/95" />
+
+        <div className="relative container mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="animate-fade-in">
+            <h1 className="text-3xl font-display tracking-tight">
+              Kōri Matcha
+            </h1>
+            <p className="text-sm text-primary-foreground/70 mt-0.5 tracking-wide">
+              氷抹茶 · Premium Japanese Tea
+            </p>
           </div>
+
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger asChild>
-              <Button size="lg" variant="accent" className="relative">
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Cart
+              <Button
+                size="lg"
+                className="relative bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all duration-300 hover:scale-[1.02]"
+              >
+                <ShoppingBag className="mr-2 h-5 w-5" />
+                <span className="font-medium">Cart</span>
                 {itemCount > 0 && (
-                  <Badge className="ml-2 absolute -top-2 -right-2 bg-white text-primary">
+                  <span className="ml-2 min-w-[1.5rem] h-6 px-2 rounded-full bg-accent text-accent-foreground text-sm font-semibold inline-flex items-center justify-center animate-scale-in">
                     {itemCount}
-                  </Badge>
+                  </span>
                 )}
               </Button>
             </SheetTrigger>
@@ -90,60 +104,74 @@ export default function MenuDisplay({
         </div>
       </header>
 
-      {/* Category Tabs & Menu Items */}
-      <div className="flex-1 overflow-hidden">
-        <Tabs
-          value={selectedCategory}
-          onValueChange={setSelectedCategory}
-          className="flex flex-col h-full"
-        >
-          {/* Category Tabs */}
-          <div className="border-b bg-card px-4">
-            <TabsList className="w-full justify-start h-auto">
-              {categories.map((category) => (
-                <TabsTrigger
-                  key={category.id}
-                  value={category.id}
-                  className="text-base py-3 px-6"
-                >
-                  {category.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
-
-          {/* Menu Items Grid */}
-          <div className="flex-1 overflow-y-auto">
-            {categories.map((category) => (
-              <TabsContent
+      {/* Category Navigation - Elegant horizontal scroll */}
+      <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center gap-1 py-2 overflow-x-auto scrollbar-hide">
+            {categories.map((category, index) => (
+              <button
                 key={category.id}
-                value={category.id}
-                className="mt-0 h-full"
+                onClick={() => setSelectedCategory(category.id)}
+                className={cn(
+                  "relative px-5 py-3 text-sm font-medium whitespace-nowrap rounded-lg transition-all duration-300",
+                  "hover:bg-primary/5",
+                  selectedCategory === category.id
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="container mx-auto px-4 py-6">
-                  {itemsByCategory[category.id]?.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {itemsByCategory[category.id].map((item) => (
-                        <MenuItemCard
-                          key={item.id}
-                          item={item}
-                          customizations={getItemCustomizations(item.id)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <p className="text-muted-foreground">
-                        No items available in this category
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
+                {category.name}
+                {selectedCategory === category.id && (
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                )}
+              </button>
             ))}
           </div>
-        </Tabs>
-      </div>
+        </div>
+      </nav>
+
+      {/* Category Title & Items Grid */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-6 py-8">
+          {/* Category Header */}
+          {currentCategory && (
+            <div className="mb-8 animate-fade-in">
+              <h2 className="text-2xl font-display text-foreground">
+                {currentCategory.name}
+              </h2>
+              <div className="w-12 h-px bg-accent mt-4" />
+            </div>
+          )}
+
+          {/* Items Grid */}
+          {itemsByCategory[selectedCategory]?.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {itemsByCategory[selectedCategory].map((item, index) => (
+                <div
+                  key={item.id}
+                  className="animate-fade-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <MenuItemCard
+                    item={item}
+                    customizations={getItemCustomizations(item.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 animate-fade-in">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <span className="text-xl">茶</span>
+              </div>
+              <p className="text-muted-foreground">
+                No items available in this category
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   )
 }

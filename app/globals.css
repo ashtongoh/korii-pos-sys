@@ -45,110 +45,326 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
 
-  /* Korii Brand Colors */
-  --background: oklch(0.99 0.005 90);      /* Warm off-white */
-  --foreground: oklch(0.15 0.02 145);      /* Near black with green undertone */
+  /* === Kōri Matcha Brand Colors === */
+  /* Inspired by Japanese tea ceremony aesthetics */
 
-  --card: oklch(1 0 0);                    /* Pure white */
-  --card-foreground: oklch(0.15 0.02 145);
+  /* Background: Warm rice paper white */
+  --background: oklch(0.985 0.003 90);
+  --foreground: oklch(0.12 0.02 145);
+
+  /* Card: Pure white with subtle warmth */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.12 0.02 145);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 145);
+  --popover-foreground: oklch(0.12 0.02 145);
 
-  /* Primary: Dark Forest Green #2C5234 */
+  /* Primary: Deep Forest Green #2C5234 - like ceremonial matcha */
   --primary: oklch(0.35 0.08 145);
   --primary-foreground: oklch(0.98 0.005 90);
 
-  /* Secondary: Light sage */
-  --secondary: oklch(0.95 0.02 145);
+  /* Secondary: Soft sage - bamboo grove inspiration */
+  --secondary: oklch(0.96 0.015 145);
   --secondary-foreground: oklch(0.35 0.08 145);
 
-  /* Muted: Soft gray with green undertone */
-  --muted: oklch(0.95 0.01 145);
-  --muted-foreground: oklch(0.5 0.02 145);
+  /* Muted: Zen garden stone gray */
+  --muted: oklch(0.95 0.008 145);
+  --muted-foreground: oklch(0.45 0.02 145);
 
-  /* Accent: Gold #C0B561 */
+  /* Accent: Precious Gold #C0B561 - kintsugi inspiration */
   --accent: oklch(0.75 0.12 95);
-  --accent-foreground: oklch(0.2 0.02 95);
+  --accent-foreground: oklch(0.18 0.02 95);
 
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.9 0.02 145);
-  --input: oklch(0.9 0.02 145);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  /* Borders: Delicate like ink wash */
+  --border: oklch(0.92 0.01 145);
+  --input: oklch(0.94 0.01 145);
   --ring: oklch(0.35 0.08 145);
 
-  /* Chart colors - green/gold palette */
-  --chart-1: oklch(0.35 0.08 145);         /* Primary green */
-  --chart-2: oklch(0.75 0.12 95);          /* Accent gold */
-  --chart-3: oklch(0.5 0.06 145);          /* Mid green */
-  --chart-4: oklch(0.85 0.08 95);          /* Light gold */
-  --chart-5: oklch(0.45 0.07 145);         /* Dark green */
+  /* Chart colors - tea garden palette */
+  --chart-1: oklch(0.35 0.08 145);
+  --chart-2: oklch(0.75 0.12 95);
+  --chart-3: oklch(0.5 0.06 145);
+  --chart-4: oklch(0.85 0.08 95);
+  --chart-5: oklch(0.45 0.07 145);
 
-  /* Sidebar - for admin/merchant */
+  /* Sidebar - admin/merchant */
   --sidebar: oklch(0.98 0.005 90);
-  --sidebar-foreground: oklch(0.15 0.02 145);
+  --sidebar-foreground: oklch(0.12 0.02 145);
   --sidebar-primary: oklch(0.35 0.08 145);
   --sidebar-primary-foreground: oklch(0.98 0.005 90);
-  --sidebar-accent: oklch(0.95 0.02 145);
+  --sidebar-accent: oklch(0.96 0.015 145);
   --sidebar-accent-foreground: oklch(0.35 0.08 145);
-  --sidebar-border: oklch(0.9 0.02 145);
+  --sidebar-border: oklch(0.92 0.01 145);
   --sidebar-ring: oklch(0.35 0.08 145);
 }
 
 .dark {
-  /* Dark mode with Korii brand colors */
-  --background: oklch(0.15 0.02 145);      /* Dark green-black */
-  --foreground: oklch(0.95 0.01 90);       /* Off-white */
+  --background: oklch(0.12 0.02 145);
+  --foreground: oklch(0.95 0.01 90);
 
-  --card: oklch(0.2 0.02 145);
+  --card: oklch(0.16 0.02 145);
   --card-foreground: oklch(0.95 0.01 90);
 
-  --popover: oklch(0.2 0.02 145);
+  --popover: oklch(0.16 0.02 145);
   --popover-foreground: oklch(0.95 0.01 90);
 
-  /* Primary: Lighter green for dark mode */
   --primary: oklch(0.5 0.1 145);
   --primary-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.25 0.02 145);
+  --secondary: oklch(0.22 0.02 145);
   --secondary-foreground: oklch(0.95 0.01 90);
 
-  --muted: oklch(0.25 0.02 145);
+  --muted: oklch(0.22 0.02 145);
   --muted-foreground: oklch(0.7 0.02 145);
 
-  /* Accent: Gold stays vibrant */
   --accent: oklch(0.75 0.12 95);
-  --accent-foreground: oklch(0.15 0 0);
+  --accent-foreground: oklch(0.12 0 0);
 
-  --destructive: oklch(0.65 0.2 25);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --destructive: oklch(0.6 0.2 25);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.5 0.1 145);
 
-  /* Chart colors - green/gold for dark mode */
   --chart-1: oklch(0.5 0.1 145);
   --chart-2: oklch(0.75 0.12 95);
   --chart-3: oklch(0.6 0.08 145);
   --chart-4: oklch(0.8 0.1 95);
   --chart-5: oklch(0.55 0.08 145);
 
-  /* Sidebar */
-  --sidebar: oklch(0.18 0.02 145);
+  --sidebar: oklch(0.14 0.02 145);
   --sidebar-foreground: oklch(0.95 0.01 90);
   --sidebar-primary: oklch(0.5 0.1 145);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.25 0.02 145);
+  --sidebar-accent: oklch(0.22 0.02 145);
   --sidebar-accent-foreground: oklch(0.95 0.01 90);
-  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.5 0.1 145);
 }
 
+/* === Base Layer === */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Display font for headings - Cormorant Garamond */
+  h1, h2, h3 {
+    font-family: var(--font-display), Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* Refined selection colors */
+  ::selection {
+    background: oklch(0.35 0.08 145 / 20%);
+    color: oklch(0.12 0.02 145);
+  }
+}
+
+/* === Japanese-Inspired Utility Classes === */
+@layer utilities {
+  /* Display font utility */
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
+  }
+
+  /* Subtle paper texture overlay */
+  .texture-paper {
+    position: relative;
+  }
+  .texture-paper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.015;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+
+  /* Matcha gradient - ceremonial green */
+  .gradient-matcha {
+    background: linear-gradient(
+      135deg,
+      oklch(0.35 0.08 145) 0%,
+      oklch(0.38 0.09 148) 50%,
+      oklch(0.35 0.08 145) 100%
+    );
+  }
+
+  /* Gold shimmer effect */
+  .shimmer-gold {
+    background: linear-gradient(
+      110deg,
+      oklch(0.75 0.12 95) 0%,
+      oklch(0.8 0.14 95) 50%,
+      oklch(0.75 0.12 95) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Japanese vertical text */
+  .writing-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+
+  /* Ink wash border */
+  .border-ink {
+    border-color: oklch(0.12 0.02 145 / 10%);
+  }
+
+  /* Zen shadow - subtle, grounded */
+  .shadow-zen {
+    box-shadow:
+      0 1px 2px oklch(0.12 0.02 145 / 3%),
+      0 4px 8px oklch(0.12 0.02 145 / 4%),
+      0 8px 16px oklch(0.12 0.02 145 / 3%);
+  }
+
+  /* Elevated shadow */
+  .shadow-elevated {
+    box-shadow:
+      0 2px 4px oklch(0.12 0.02 145 / 4%),
+      0 8px 16px oklch(0.12 0.02 145 / 6%),
+      0 16px 32px oklch(0.12 0.02 145 / 4%);
+  }
+
+  /* Gold accent glow */
+  .glow-gold {
+    box-shadow: 0 0 20px oklch(0.75 0.12 95 / 25%);
+  }
+}
+
+/* === Animations === */
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Animation utilities */
+.animate-fade-up {
+  animation: fadeUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* === Component Overrides === */
+
+/* Refined scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.12 0.02 145 / 15%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.12 0.02 145 / 25%);
+}
+
+/* Focus styles - gold ring */
+:focus-visible {
+  outline: 2px solid oklch(0.75 0.12 95);
+  outline-offset: 2px;
+}
+
+/* iPad touch optimization */
+@media (pointer: coarse) {
+  button, [role="button"], a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* === Print Styles === */
+@media print {
+  .no-print { display: none !important; }
 }

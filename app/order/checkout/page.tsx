@@ -57,7 +57,7 @@ export default function CheckoutPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Checkout</h1>
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">Checkout</h1>
             <p className="text-sm text-muted-foreground">
               {step === 'initials' ? 'Enter your initials' : 'Select payment method'}
             </p>
@@ -90,7 +90,7 @@ export default function CheckoutPage() {
             <Separator />
             <div className="flex justify-between items-center text-lg font-bold">
               <span>Total</span>
-              <span>{formatCurrency(cart.getTotal())}</span>
+              <span className="text-primary">{formatCurrency(cart.getTotal())}</span>
             </div>
           </CardContent>
         </Card>

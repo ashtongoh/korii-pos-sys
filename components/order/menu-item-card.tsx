@@ -42,13 +42,13 @@ export default function MenuItemCard({ item, customizations }: MenuItemCardProps
         )}
 
         <CardContent className="p-4">
-          <h3 className="font-semibold text-lg line-clamp-2 mb-1">{item.name}</h3>
+          <h3 className="font-semibold text-lg line-clamp-2 mb-1 font-[family-name:var(--font-display)]">{item.name}</h3>
           {item.description && (
             <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
               {item.description}
             </p>
           )}
-          <p className="text-lg font-bold">{formatCurrency(Number(item.base_price))}</p>
+          <p className="text-lg font-bold text-primary">{formatCurrency(Number(item.base_price))}</p>
         </CardContent>
 
         <CardFooter className="p-4 pt-0">

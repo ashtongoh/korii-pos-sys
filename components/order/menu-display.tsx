@@ -67,19 +67,19 @@ export default function MenuDisplay({
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="border-b bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Korii Matcha</h1>
-            <p className="text-sm text-muted-foreground">Select your items</p>
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">Kōri Matcha</h1>
+            <p className="text-sm text-primary-foreground/80">Select your items</p>
           </div>
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger asChild>
-              <Button size="lg" className="relative">
+              <Button size="lg" variant="accent" className="relative">
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Cart
                 {itemCount > 0 && (
-                  <Badge className="ml-2 absolute -top-2 -right-2" variant="destructive">
+                  <Badge className="ml-2 absolute -top-2 -right-2 bg-white text-primary">
                     {itemCount}
                   </Badge>
                 )}

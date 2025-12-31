@@ -2,22 +2,24 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { OrderWithItems } from '@/lib/types'
+import { OrderWithItems, AdminUser } from '@/lib/types'
 import { OrderCard } from './order-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { signOut } from '@/lib/actions/auth'
 
 interface OrderQueueProps {
   initialOrders: OrderWithItems[]
+  user?: AdminUser
 }
 
 type TabValue = 'all' | 'paid' | 'preparing' | 'completed'
 
-export function OrderQueue({ initialOrders }: OrderQueueProps) {
+export function OrderQueue({ initialOrders, user }: OrderQueueProps) {
   const [orders, setOrders] = useState<OrderWithItems[]>(initialOrders)
   const [activeTab, setActiveTab] = useState<TabValue>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -163,80 +165,99 @@ export function OrderQueue({ initialOrders }: OrderQueueProps) {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Order Queue</h1>
+    <div className="min-h-screen">
+      {/* Branded Header */}
+      <header className="bg-primary text-primary-foreground">
+        <div className="container mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-[family-name:var(--font-display)]">Kōri Matcha</h1>
+            <p className="text-sm text-primary-foreground/80">Order Queue</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="accent"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            {user && (
+              <form action={signOut}>
+                <Button type="submit" variant="secondary" size="sm">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto p-4 md:p-6">
+        {/* Status Summary */}
+        <div className="mb-6">
           <p className="text-muted-foreground">
             {paidCount} new · {preparingCount} preparing · {completedCount} completed
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="all">
-            All
-            <Badge variant="secondary" className="ml-2">
-              {orders.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="paid">
-            New
-            {paidCount > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {paidCount}
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="all">
+              All
+              <Badge variant="secondary" className="ml-2">
+                {orders.length}
               </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="preparing">
-            Preparing
-            {preparingCount > 0 && (
-              <Badge className="ml-2 bg-blue-500">
-                {preparingCount}
+            </TabsTrigger>
+            <TabsTrigger value="paid">
+              New
+              {paidCount > 0 && (
+                <Badge variant="paid" className="ml-2">
+                  {paidCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="preparing">
+              Preparing
+              {preparingCount > 0 && (
+                <Badge variant="preparing" className="ml-2">
+                  {preparingCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Completed
+              <Badge variant="secondary" className="ml-2">
+                {completedCount}
               </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed
-            <Badge variant="secondary" className="ml-2">
-              {completedCount}
-            </Badge>
-          </TabsTrigger>
-        </TabsList>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value={activeTab} className="mt-0">
-          {filteredOrders.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="text-lg">No orders in this category</p>
-              <p className="text-sm mt-1">Orders will appear here automatically</p>
-            </div>
-          ) : (
-            <ScrollArea className="h-[calc(100vh-200px)]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredOrders.map((order) => (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    onStatusUpdate={handleStatusUpdate}
-                  />
-                ))}
+          <TabsContent value={activeTab} className="mt-0">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-lg">No orders in this category</p>
+                <p className="text-sm mt-1">Orders will appear here automatically</p>
               </div>
-            </ScrollArea>
-          )}
-        </TabsContent>
-      </Tabs>
+            ) : (
+              <ScrollArea className="h-[calc(100vh-280px)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredOrders.map((order) => (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      onStatusUpdate={handleStatusUpdate}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

@@ -19,7 +19,8 @@ Korii Matcha POS System - a self-service Point of Sale for a matcha shop, design
 
 - **Phase 1-2 Complete**: Foundation, database schema, customer ordering interface
 - **Phase 3 Complete**: HitPay PayNow QR integration
-- **Pending**: Email payment monitoring, Barista dashboard (`/merchant`), Admin panel (`/admin`)
+- **Phase 4 Complete**: Brand styling applied across all interfaces
+- **Phase 5 Complete**: Admin authentication, Admin panel (`/admin`), Menu management
 
 ## Architecture
 
@@ -28,8 +29,9 @@ Korii Matcha POS System - a self-service Point of Sale for a matcha shop, design
 | Route | Purpose | Status |
 |-------|---------|--------|
 | `/order` | Customer self-service kiosk (iPad) | Implemented |
-| `/merchant` | Barista dashboard - real-time order queue | Not built |
-| `/admin` | Menu management, analytics, staff management | Not built |
+| `/merchant` | Barista dashboard - real-time order queue | Implemented (auth protected) |
+| `/admin` | Menu management, analytics, staff management | Implemented (admin only) |
+| `/login` | Staff authentication | Implemented |
 
 ### Customer Order Flow
 
@@ -134,3 +136,102 @@ ngrok http 3000
 - **React Context over Zustand**: Sufficient for cart state, no extra dependencies
 - **Supabase**: All-in-one (DB, Auth, Realtime), RLS for security, no separate backend
 - **Customers identified by initials**: Simple identification for calling out orders (no accounts required)
+
+## Brand Styling Guidelines
+
+> **IMPORTANT**: All UI changes MUST strictly adhere to these styling guidelines. Do not deviate from the established brand identity, colors, or typography.
+
+### Brand Identity
+
+**Name**: Kōri Matcha (氷 = ice in Japanese)
+**Philosophy**: Minimalist, Japanese-inspired, freshness, clarity, calm
+
+### Color Palette (STRICT)
+
+| Color | Hex | OKLCH | Usage |
+|-------|-----|-------|-------|
+| Primary Green | `#2C5234` | `oklch(0.35 0.08 145)` | Headers, primary buttons, links, completed status |
+| Accent Gold | `#C0B561` | `oklch(0.75 0.12 95)` | Secondary CTAs, highlights, preparing status |
+| Black | `#000000` | - | Text |
+| White | `#FFFFFF` | - | Backgrounds, button text on primary |
+
+**DO NOT** use other colors (e.g., blue, red for non-error states). All UI elements must use these brand colors.
+
+### Typography (STRICT)
+
+| Font | Variable | Usage |
+|------|----------|-------|
+| **Cormorant Garamond** | `--font-display` | ALL headings, brand name, item names, prices |
+| **Montserrat** | `--font-montserrat` | Body text, descriptions, UI labels |
+
+**Usage**:
+```tsx
+// For headings and brand elements
+className="font-[family-name:var(--font-display)]"
+
+// Body text uses default (Montserrat via font-sans)
+```
+
+**DO NOT** use other fonts or the default Inter font.
+
+### Component Variants (STRICT)
+
+**Button Variants**:
+- `default` - Primary green (main CTAs: "Checkout", "Complete Order", "Sign In")
+- `accent` - Gold (secondary actions: "Add to Cart", "Start Preparing", "Refresh")
+- `secondary` - Light sage background (tertiary actions)
+- `outline` - Bordered, transparent background
+- `ghost` - No background, hover state only
+- `destructive` - Red, for delete/cancel actions only
+
+**Badge Variants**:
+- `paid` - Light green background, for new orders
+- `preparing` - Gold background, for in-progress orders
+- `completed` - Primary green background, for done orders
+- `pending` - Muted gray, for awaiting states
+
+### Header Pattern (REQUIRED)
+
+All page interfaces MUST use this branded header:
+
+```tsx
+<header className="bg-primary text-primary-foreground">
+  <div className="container mx-auto px-4 py-4">
+    <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">Kōri Matcha</h1>
+    <p className="text-sm text-primary-foreground/80">Subtitle here</p>
+  </div>
+</header>
+```
+
+### Status Colors (STRICT)
+
+| Status | Badge Variant | Card Border | Button |
+|--------|--------------|-------------|--------|
+| New/Paid | `paid` | `border-accent` | `variant="accent"` |
+| Preparing | `preparing` | - | - |
+| Completed | `completed` | - | `variant="default"` |
+
+### Card Styling
+
+Cards use `rounded-2xl` with subtle borders (`border-border/50`). Do not use sharp corners or heavy shadows.
+
+### Price Display
+
+Prices should always use:
+- Primary green color: `text-primary`
+- Display font: `font-[family-name:var(--font-display)]`
+- Bold weight: `font-bold`
+
+### Dos and Don'ts
+
+**DO**:
+- Use forest green (`bg-primary`) for all headers
+- Use gold (`variant="accent"`) for secondary actions
+- Use display font for all headings and item names
+- Keep UI minimal and clean
+
+**DON'T**:
+- Use blue, purple, or other non-brand colors
+- Use default shadcn gray theme
+- Add unnecessary decorations or gradients
+- Use fonts other than Cormorant Garamond and Montserrat

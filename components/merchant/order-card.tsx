@@ -54,24 +54,24 @@ export function OrderCard({ order, onStatusUpdate }: OrderCardProps) {
     return customizations.map((c) => c.option_name).join(', ')
   }
 
-  // Status badge variant
+  // Status badge variant - using brand colors
   const getStatusBadge = () => {
     switch (order.status) {
       case 'paid':
         return (
-          <Badge variant="destructive" className="bg-amber-500 hover:bg-amber-600">
+          <Badge variant="paid">
             New
           </Badge>
         )
       case 'preparing':
         return (
-          <Badge className="bg-blue-500 hover:bg-blue-600">
+          <Badge variant="preparing">
             Preparing
           </Badge>
         )
       case 'completed':
         return (
-          <Badge variant="secondary" className="bg-green-500 text-white hover:bg-green-600">
+          <Badge variant="completed">
             Completed
           </Badge>
         )
@@ -84,7 +84,7 @@ export function OrderCard({ order, onStatusUpdate }: OrderCardProps) {
   const PaymentIcon = order.payment_method === 'cash' ? Banknote : CreditCard
 
   return (
-    <Card className={`${order.status === 'paid' ? 'border-amber-500 border-2' : ''}`}>
+    <Card className={`${order.status === 'paid' ? 'border-accent border-2' : ''}`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -150,7 +150,8 @@ export function OrderCard({ order, onStatusUpdate }: OrderCardProps) {
       <CardFooter className="pt-2">
         {order.status === 'paid' && (
           <Button
-            className="w-full bg-blue-500 hover:bg-blue-600"
+            className="w-full"
+            variant="accent"
             onClick={() => handleStatusChange('preparing')}
             disabled={isUpdating}
           >
@@ -162,7 +163,7 @@ export function OrderCard({ order, onStatusUpdate }: OrderCardProps) {
         )}
         {order.status === 'preparing' && (
           <Button
-            className="w-full bg-green-500 hover:bg-green-600"
+            className="w-full"
             onClick={() => handleStatusChange('completed')}
             disabled={isUpdating}
           >

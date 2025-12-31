@@ -233,9 +233,9 @@ function PaymentContent() {
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <Card className="max-w-md w-full">
           <CardContent className="pt-8 pb-6 text-center space-y-6">
-            <CheckCircle2 className="h-24 w-24 text-green-500 mx-auto" />
+            <CheckCircle2 className="h-24 w-24 text-primary mx-auto" />
             <div>
-              <h2 className="text-2xl font-bold mb-2">Payment Successful!</h2>
+              <h2 className="text-2xl font-bold mb-2 font-[family-name:var(--font-display)]">Payment Successful!</h2>
               <p className="text-muted-foreground mb-4">
                 Thank you, <span className="font-semibold">{initials}</span>!
               </p>
@@ -275,9 +275,9 @@ function PaymentContent() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-8 pb-6 space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Scan to Pay</h2>
+              <h2 className="text-2xl font-bold mb-2 font-[family-name:var(--font-display)]">Scan to Pay</h2>
               <p className="text-muted-foreground mb-6">
-                Total: <span className="font-bold text-lg">{formatCurrency(cart.getTotal())}</span>
+                Total: <span className="font-bold text-lg text-primary">{formatCurrency(cart.getTotal())}</span>
               </p>
             </div>
 

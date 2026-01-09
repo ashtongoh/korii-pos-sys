@@ -1,6 +1,6 @@
 import { getCurrentUser } from '@/lib/actions/auth'
 import { redirect } from 'next/navigation'
-import { AdminSidebar } from '@/components/admin/sidebar'
+import { AdminLayoutWrapper } from '@/components/admin/admin-layout-wrapper'
 
 export default async function AdminLayout({
   children,
@@ -13,10 +13,5 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
-  return (
-    <div className="flex min-h-screen">
-      <AdminSidebar user={user} />
-      <main className="flex-1 bg-background">{children}</main>
-    </div>
-  )
+  return <AdminLayoutWrapper user={user}>{children}</AdminLayoutWrapper>
 }

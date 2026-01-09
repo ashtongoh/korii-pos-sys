@@ -150,7 +150,7 @@ export default function MenuDisplay({
               {itemsByCategory[selectedCategory].map((item, index) => (
                 <div
                   key={item.id}
-                  className="animate-fade-up"
+                  className="animate-fade-up h-full"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <MenuItemCard

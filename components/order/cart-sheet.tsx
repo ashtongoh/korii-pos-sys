@@ -49,12 +49,7 @@ export default function CartSheet({ onClose }: CartSheetProps) {
     <SheetContent side="right" className="w-full sm:max-w-md flex flex-col border-l-0 shadow-2xl p-0">
       {/* Header */}
       <SheetHeader className="px-6 py-4 border-b bg-card">
-        <div className="flex items-center justify-between">
-          <SheetTitle className="font-display text-xl">Your Order</SheetTitle>
-          <span className="text-sm text-muted-foreground">
-            {cart.getItemCount()} {cart.getItemCount() === 1 ? 'item' : 'items'}
-          </span>
-        </div>
+        <SheetTitle className="font-display text-xl">Your Order</SheetTitle>
       </SheetHeader>
 
       {/* Cart Items */}
@@ -141,12 +136,21 @@ export default function CartSheet({ onClose }: CartSheetProps) {
 
       {/* Footer with Total and Checkout */}
       <SheetFooter className="flex-col gap-4 p-6 border-t bg-card">
-        {/* Total */}
-        <div className="flex justify-between items-center">
-          <span className="text-muted-foreground">Total</span>
-          <span className="font-display text-2xl font-medium text-foreground">
-            {formatCurrency(cart.getTotal())}
-          </span>
+        {/* Item count and Total */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">
+              {cart.getItemCount()} {cart.getItemCount() === 1 ? 'item' : 'items'}
+            </span>
+            <div className="flex-1 mx-4 border-t border-dashed border-border/50" />
+            <span className="text-muted-foreground">Subtotal</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Total</span>
+            <span className="font-display text-2xl font-medium text-foreground">
+              {formatCurrency(cart.getTotal())}
+            </span>
+          </div>
         </div>
 
         {/* Buttons */}

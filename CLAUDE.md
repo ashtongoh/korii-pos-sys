@@ -31,6 +31,7 @@ Korii Matcha POS System - a self-service Point of Sale for a matcha shop, design
 | `/order` | Customer self-service kiosk (iPad) | Implemented |
 | `/merchant` | Barista dashboard - real-time order queue | Implemented (auth protected) |
 | `/admin` | Menu management, analytics, staff management | Implemented (admin only) |
+| `/admin/customizations` | CRUD for customization groups, options, and item assignments | Implemented (admin only) |
 | `/login` | Staff authentication | Implemented |
 
 ### Customer Order Flow
@@ -136,6 +137,23 @@ ngrok http 3000
 - **React Context over Zustand**: Sufficient for cart state, no extra dependencies
 - **Supabase**: All-in-one (DB, Auth, Realtime), RLS for security, no separate backend
 - **Customers identified by initials**: Simple identification for calling out orders (no accounts required)
+
+## Responsive Design
+
+### Standard Breakpoints
+
+| Breakpoint | Width | Target Devices |
+|------------|-------|----------------|
+| sm | 640px | Large phones |
+| md | 768px | Tablets portrait |
+| lg | 1024px | Tablets landscape, small laptops |
+| xl | 1280px | Laptops |
+| 2xl | 1536px | Desktops |
+
+**Primary targets:**
+- Customer kiosk (`/order`): iPad (768px-1024px)
+- Admin panel (`/admin`): All devices
+- Merchant dashboard (`/merchant`): Tablets and up
 
 ---
 

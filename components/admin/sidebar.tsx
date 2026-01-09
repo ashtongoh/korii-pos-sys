@@ -12,6 +12,7 @@ import {
   ClipboardList,
   LogOut,
   User,
+  Settings2,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -30,6 +31,11 @@ const navItems = [
     icon: UtensilsCrossed,
   },
   {
+    title: 'Customizations',
+    href: '/admin/customizations',
+    icon: Settings2,
+  },
+  {
     title: 'Orders',
     href: '/admin/orders',
     icon: ClipboardList,
@@ -40,9 +46,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside className="w-64 border-r bg-card flex flex-col">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b">
+      <div className="p-6 border-b pr-12 lg:pr-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
             <span className="text-lg text-primary-foreground font-display">氷</span>
@@ -118,6 +124,6 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           </Button>
         </form>
       </div>
-    </aside>
+    </div>
   )
 }

@@ -11,8 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Checkbox } from '@/components/ui/checkbox'
+import { PillSelector, MultiPillSelector } from '@/components/ui/pill-selector'
 import { formatCurrency } from '@/lib/utils/format'
 import { useCart } from '@/contexts/cart-context'
 import { toast } from 'sonner'
@@ -44,7 +43,7 @@ export default function ItemCustomizationModal({
     }
   }
 
-  // Handle single selection (radio)
+  // Handle single selection (pill selector)
   const handleSingleSelection = (groupId: string, optionId: string) => {
     setSelectedOptions((prev) => ({
       ...prev,
@@ -52,16 +51,12 @@ export default function ItemCustomizationModal({
     }))
   }
 
-  // Handle multiple selection (checkbox)
-  const handleMultipleSelection = (groupId: string, optionId: string, checked: boolean) => {
-    setSelectedOptions((prev) => {
-      const current = prev[groupId] || []
-      if (checked) {
-        return { ...prev, [groupId]: [...current, optionId] }
-      } else {
-        return { ...prev, [groupId]: current.filter((id) => id !== optionId) }
-      }
-    })
+  // Handle multiple selection (multi pill selector)
+  const handleMultipleSelection = (groupId: string, optionIds: string[]) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [groupId]: optionIds,
+    }))
   }
 
   // Calculate total price
@@ -123,20 +118,13 @@ export default function ItemCustomizationModal({
     handleOpenChange(false)
   }
 
-  // Quick add (no customizations)
-  const handleQuickAdd = () => {
-    cart.addItem(item, [], 1)
-    toast.success('Added to cart!')
-    onClose()
-  }
-
   // If no customizations, show quick add option
   if (customizations.length === 0) {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{item.name}</DialogTitle>
+            <DialogTitle className="font-display text-xl">{item.name}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -149,25 +137,35 @@ export default function ItemCustomizationModal({
                 />
               </div>
             )}
-            {item.description && <p className="text-muted-foreground">{item.description}</p>}
-            <p className="text-2xl font-bold">{formatCurrency(Number(item.base_price))}</p>
+            {item.description && (
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {item.description}
+              </p>
+            )}
+            <p className="font-display text-2xl text-primary">
+              {formatCurrency(Number(item.base_price))}
+            </p>
 
             {/* Quantity */}
-            <div className="flex items-center justify-between">
-              <Label>Quantity</Label>
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between py-2">
+              <Label className="text-base">Quantity</Label>
+              <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="h-11 w-11"
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="w-12 text-center font-semibold">{quantity}</span>
+                <span className="w-12 text-center font-semibold text-lg tabular-nums">
+                  {quantity}
+                </span>
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => setQuantity(quantity + 1)}
+                  className="h-11 w-11"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -176,7 +174,7 @@ export default function ItemCustomizationModal({
           </div>
 
           <DialogFooter>
-            <Button onClick={() => handleAddToCart()} size="lg" className="w-full">
+            <Button onClick={() => handleAddToCart()} size="lg" className="w-full h-12">
               Add {quantity} to Cart - {formatCurrency(Number(item.base_price) * quantity)}
             </Button>
           </DialogFooter>
@@ -187,95 +185,83 @@ export default function ItemCustomizationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{item.name}</DialogTitle>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto p-0">
+        {/* Header - sticky on scroll */}
+        <DialogHeader className="sticky top-0 z-10 bg-card px-6 py-4 border-b">
+          <DialogTitle className="font-display text-xl">{item.name}</DialogTitle>
+          {item.description && (
+            <p className="text-muted-foreground text-sm leading-relaxed mt-1">
+              {item.description}
+            </p>
+          )}
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Item info */}
-          {item.image_url && (
-            <div className="aspect-video relative bg-muted rounded-lg overflow-hidden">
-              <img
-                src={item.image_url}
-                alt={item.name}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          )}
-          {item.description && <p className="text-muted-foreground">{item.description}</p>}
-
-          {/* Customizations */}
-          {customizations.map((group) => (
-            <div key={group.id} className="space-y-3">
-              <Label className="text-base font-semibold">
+        {/* Scrollable content */}
+        <div className="px-6 py-4 space-y-5">
+          {/* Customizations - compact layout */}
+          {customizations.map((group, groupIndex) => (
+            <div
+              key={group.id}
+              className="animate-fade-up"
+              style={{ animationDelay: `${groupIndex * 50}ms` }}
+            >
+              <Label className="text-sm font-semibold text-foreground mb-3 block">
                 {group.name}
-                {group.required && <span className="text-destructive ml-1">*</span>}
+                {group.required && (
+                  <span className="text-destructive ml-1">*</span>
+                )}
               </Label>
 
               {group.type === 'single' ? (
-                <RadioGroup
+                <PillSelector
                   value={selectedOptions[group.id]?.[0] || ''}
                   onValueChange={(value) => handleSingleSelection(group.id, value)}
-                >
-                  {group.options.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.id} id={option.id} />
-                      <Label htmlFor={option.id} className="flex-1 cursor-pointer">
-                        {option.name}
-                        {Number(option.price_modifier) !== 0 && (
-                          <span className="ml-2 text-muted-foreground">
-                            {Number(option.price_modifier) > 0 ? '+' : ''}
-                            {formatCurrency(Number(option.price_modifier))}
-                          </span>
-                        )}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+                  options={group.options.map((option) => ({
+                    value: option.id,
+                    label: option.name,
+                    sublabel:
+                      Number(option.price_modifier) !== 0
+                        ? `${Number(option.price_modifier) > 0 ? '+' : ''}${formatCurrency(Number(option.price_modifier))}`
+                        : undefined,
+                  }))}
+                />
               ) : (
-                <div className="space-y-2">
-                  {group.options.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={option.id}
-                        checked={selectedOptions[group.id]?.includes(option.id) || false}
-                        onCheckedChange={(checked) =>
-                          handleMultipleSelection(group.id, option.id, checked as boolean)
-                        }
-                      />
-                      <Label htmlFor={option.id} className="flex-1 cursor-pointer">
-                        {option.name}
-                        {Number(option.price_modifier) !== 0 && (
-                          <span className="ml-2 text-muted-foreground">
-                            {Number(option.price_modifier) > 0 ? '+' : ''}
-                            {formatCurrency(Number(option.price_modifier))}
-                          </span>
-                        )}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                <MultiPillSelector
+                  values={selectedOptions[group.id] || []}
+                  onValuesChange={(values) => handleMultipleSelection(group.id, values)}
+                  options={group.options.map((option) => ({
+                    value: option.id,
+                    label: option.name,
+                    sublabel:
+                      Number(option.price_modifier) !== 0
+                        ? `${Number(option.price_modifier) > 0 ? '+' : ''}${formatCurrency(Number(option.price_modifier))}`
+                        : undefined,
+                  }))}
+                />
               )}
             </div>
           ))}
 
-          {/* Quantity */}
-          <div className="flex items-center justify-between pt-4 border-t">
-            <Label className="text-base">Quantity</Label>
+          {/* Quantity selector */}
+          <div className="flex items-center justify-between pt-4 border-t border-border/50">
+            <Label className="text-sm font-semibold">Quantity</Label>
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="h-11 w-11 shadow-zen"
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <span className="w-12 text-center font-semibold text-lg">{quantity}</span>
+              <span className="w-10 text-center font-semibold text-lg tabular-nums">
+                {quantity}
+              </span>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setQuantity(quantity + 1)}
+                className="h-11 w-11 shadow-zen"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -283,15 +269,20 @@ export default function ItemCustomizationModal({
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-between gap-2">
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+        {/* Footer - sticky */}
+        <DialogFooter className="sticky bottom-0 bg-card px-6 py-4 border-t gap-3 sm:gap-3">
+          <Button
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+            className="h-12 px-6"
+          >
             Cancel
           </Button>
           <Button
             onClick={handleAddToCart}
             disabled={!canAddToCart}
             size="lg"
-            className="flex-1"
+            className="flex-1 h-12 font-semibold"
           >
             Add {quantity} to Cart - {formatCurrency(totalPrice)}
           </Button>
